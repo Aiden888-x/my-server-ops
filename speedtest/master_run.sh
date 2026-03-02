@@ -30,10 +30,10 @@ do
     
     if [ $? -eq 0 ]; then
         # 官方版的解析逻辑略有不同
-# 修正后的提取逻辑：只拿数字和单位
-        PING=$(echo "$RESULT" | grep "Latency" | awk -F': ' '{print $2}')
-        DOWN=$(echo "$RESULT" | grep "Download" | awk -F': ' '{print $2}')
-        UP=$(echo "$RESULT" | grep "Upload" | awk -F': ' '{print $2}')
+# 终极精准提取：只拿第一个数字和单位
+        PING=$(echo "$RESULT" | grep "Latency" | awk '{print $2, $3}')
+        DOWN=$(echo "$RESULT" | grep "Download" | awk '{print $2, $3}')
+        UP=$(echo "$RESULT" | grep "Upload" | awk '{print $2, $3}')
         REPORT="${REPORT}📍 *主机:* $IP%0A🏓 *延迟:* $PING%0A⬇️ *下载:* $DOWN%0A⬆️ *上传:* $UP%0A------------------%0A"
     else
         REPORT="${REPORT}📍 *主机:* $IP%0A❌ *状态:* 无法连接或测速失败%0A------------------%0A"
