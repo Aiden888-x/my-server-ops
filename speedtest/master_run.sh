@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ====================================================
-# 方案二：主控端（NAS）测速汇总脚本 (排版终极修复版)
+# 方案二：主控端（NAS）测速汇总脚本 (冒号逻辑修正版)
 # ====================================================
 
 CONFIG_FILE="$(dirname "$0")/speedtest.conf"
@@ -25,17 +25,16 @@ REPORT="🚀 *千兆版定时测速报表*%0A------------------%0A"
 for IP in "${SERVERS[@]}"
 do
     echo "正在测试 $IP ..."
+    # 远程执行，捕获完整输出
     RESULT=$(ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no root@$IP "speedtest --accept-license --accept-gdpr" 2>/dev/null)
     
     if [ $? -eq 0 ]; then
-        # 【暴力修复逻辑】
-        # 1. grep 找到行
-        # 2. sed 's/.*://' 去掉冒号前的内容
-        # 3. sed 's/(.*//' 去掉左括号后的所有内容
-        # 4. xargs 去掉前后多余空格
-        PING=$(echo "$RESULT" | grep "Latency" | sed 's/.*://; s/(.*//' | xargs)
-        DOWN=$(echo "$RESULT" | grep "Download" | sed 's/.*://; s/(.*//' | xargs)
-        UP=$(echo "$RESULT" | grep "Upload" | sed 's/.*://; s/(.*//' | xargs)
+        # 【核心修复】
+        # cut -d: -f2- 表示只在第一个冒号处切割，保留后面所有内容
+        # awk '{print $1, $2}' 表示只拿前两个单词（即数字和单位），自动丢弃括号及括号内内容
+        PING=$(echo "$RESULT" | grep "Latency" | cut -d: -f2- | awk '{print $1, $2}')
+        DOWN=$(echo "$RESULT" | grep "Download" | cut -d: -f2- | awk '{print $1, $2}')
+        UP=$(echo "$RESULT" | grep "Upload" | cut -d: -f2- | awk '{print $1, $2}')
         
         REPORT="${REPORT}📍 *主机:* $IP%0A🏓 *延迟:* $PING%0A⬇️ *下载:* $DOWN%0A⬆️ *上传:* $UP%0A------------------%0A"
     else
