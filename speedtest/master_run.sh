@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ====================================================
-# 方案二：主控端（NAS）测速汇总脚本 - 官方版兼容
+# 方案二：主控端（NAS）测速汇总脚本 (格式修正版)
 # ====================================================
 
 CONFIG_FILE="$(dirname "$0")/speedtest.conf"
@@ -24,13 +24,12 @@ REPORT="🚀 *千兆版定时测速报表*%0A------------------%0A"
 
 for IP in "${SERVERS[@]}"
 do
-    echo "正在测试 $IP (官方版) ..."
-    # 核心变动：使用官方 speedtest 命令，增加自动接受协议参数
+    echo "正在测试 $IP ..."
+    # 远程执行，添加协议自动接受
     RESULT=$(ssh -o ConnectTimeout=8 -o StrictHostKeyChecking=no root@$IP "speedtest --accept-license --accept-gdpr" 2>/dev/null)
     
     if [ $? -eq 0 ]; then
-        # 官方版的解析逻辑略有不同
-# 终极精准提取：只拿第一个数字和单位
+        # 精准抓取数字和单位，忽略括号内容
         PING=$(echo "$RESULT" | grep "Latency" | awk '{print $2, $3}')
         DOWN=$(echo "$RESULT" | grep "Download" | awk '{print $2, $3}')
         UP=$(echo "$RESULT" | grep "Upload" | awk '{print $2, $3}')
@@ -45,4 +44,4 @@ curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
     -d "parse_mode=Markdown" \
     -d "text=${REPORT}"
 
-echo "✅ 报表已推送。"
+echo "✅ 报表已发送。"
