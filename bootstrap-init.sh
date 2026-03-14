@@ -3,6 +3,13 @@ set -euo pipefail
 
 TIMEZONE="Asia/Shanghai"
 OPS_DIR="/ops"
+OPS_SUBDIRS=(
+  apps
+  conf
+  script
+  logs
+  backup
+)
 
 log() {
   echo "[INFO] $*"
@@ -42,20 +49,31 @@ set_timezone() {
   log "当前系统时间: $(date '+%F %T %Z')"
 }
 
-create_ops_dir() {
-  log "创建目录 ${OPS_DIR}"
+create_ops_layout() {
+  log "创建基础目录结构: ${OPS_DIR}"
 
   mkdir -p "${OPS_DIR}"
   chmod 755 "${OPS_DIR}"
 
-  log "目录状态: $(ls -ld "${OPS_DIR}")"
+  for dir in "${OPS_SUBDIRS[@]}"; do
+    mkdir -p "${OPS_DIR}/${dir}"
+    chmod 755 "${OPS_DIR}/${dir}"
+  done
+
+  log "目录结构创建完成"
+}
+
+show_ops_layout() {
+  log "当前目录状态:"
+  ls -ld "${OPS_DIR}" "${OPS_DIR}"/* 2>/dev/null
 }
 
 main() {
   require_root
   check_system
   set_timezone
-  create_ops_dir
+  create_ops_layout
+  show_ops_layout
   log "初始化完成"
 }
 
